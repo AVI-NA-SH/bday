@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#FFB6C1">
+    <title>Happy Birthday sanajan! 🎉</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Great+Vibes&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-pink': '#FFB6C1',
+                        'light-pink': '#FFD6E7',
+                        'pastel-rose': '#FFC0CB',
+                        'cream': '#FFF8F8',
+                        'soft-red': '#FF6B81',
+                        'text-dark': '#444444',
+                    },
+                    fontFamily: {
+                        'body': ['Quicksand', 'sans-serif'],
+                        'handwriting': ['Caveat', 'cursive'],
+                        'elegant': ['Great Vibes', 'cursive'],
+                    },
+                    boxShadow: {
+                        'soft-pink': '0 10px 25px -5px rgba(255, 182, 193, 0.4)',
+                        'polaroid': '0 4px 15px rgba(0,0,0,0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* Base & Resets */
+        body { background-color: #FFF8F8; color: #444444; overflow-x: hidden; scroll-behavior: smooth; }
+        button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #FFF8F8; }
+        ::-webkit-scrollbar-thumb { background: #FFB6C1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF6B81; }
+
+        /* Global Floating Hearts Background */
+        #heart-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .bg-heart { position: absolute; bottom: -50px; opacity: 0; animation: floatUp var(--duration) ease-in infinite; transform: scale(var(--scale)); left: var(--left); }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(var(--scale)) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            80% { opacity: 0.4; }
+            100% { transform: translateY(-100vh) scale(var(--scale)) rotate(var(--rot)); opacity: 0; }
+        }
+
+        /* Scrapbook Elements */
+        .tape {
+            position: absolute; width: clamp(60px, 15vw, 100px); height: 30px; background-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); backdrop-filter: blur(2px);
+            border-left: 2px dashed rgba(0,0,0,0.1); border-right: 2px dashed rgba(0,0,0,0.1); z-index: 10;
+        }
+        .polaroid {
+            background: white; padding: 12px 12px 40px 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            position: relative; transition: transform 0.3s ease; border: 1px solid #eee;
+        }
+        .polaroid:hover { transform: scale(1.05) rotate(0deg) !important; z-index: 20; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .polaroid img { width: 100%; height: auto; display: block; filter: sepia(10%) contrast(1.1); }
+        .polaroid .caption { font-family: 'Caveat', cursive; font-size: 1.5rem; text-align: center; margin-top: 10px; color: #555; }
+        
+        .paper-texture {
+            background-color: #fffdf5; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
+            box-shadow: 2px 3px 20px rgba(0,0,0,0.05);
+        }
+
+        /* Envelope Animations */
+        .envelope-wrapper { position: relative; width: 100%; max-width: 300px; height: 200px; cursor: pointer; transition: transform 0.3s ease; margin: 0 auto; -webkit-tap-highlight-color: transparent;}
+        .envelope-wrapper:hover { transform: translateY(-10px) scale(1.02); }
+        .envelope { position: absolute; inset: 0; background: #FFD6E7; border-radius: 0 0 10px 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; z-index: 2; }
+        .envelope::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 100px 150px 100px 150px; border-color: transparent transparent #FFC0CB #FFC0CB; z-index: 3; pointer-events: none; }
+        .envelope::after { content: ''; position: absolute; top: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 100px 150px 100px 150px; border-color: transparent #FFB6C1 #FFB6C1 transparent; z-index: 3; pointer-events: none; }
+        .flap { position: absolute; top: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 120px 150px 0 150px; border-color: #FFB6C1 transparent transparent transparent; transform-origin: top; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); z-index: 4; }
+        .envelope-wrapper.open .flap { transform: rotateX(180deg); z-index: 1; }
+        .letter { position: absolute; bottom: 0; left: 5%; width: 90%; height: 90%; background: white; border-radius: 5px; transition: transform 0.6s 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 2; padding: 20px; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .envelope-wrapper.open .letter { transform: translateY(-50px); }
+        
+        #gate { transition: opacity 1s ease, transform 1s ease; }
+        #gate.hidden-gate { opacity: 0; transform: scale(1.1); pointer-events: none; }
+
+        /* Scroll Reveal Animations */
+        .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; will-change: opacity, transform; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        /* Specific Section Animations */
+        /* Reasons Cards */
+        .reason-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .reason-card:hover { transform: translateY(-15px) scale(1.05) rotate(calc(var(--hover-rot) * 1deg)); box-shadow: 0 15px 30px rgba(255, 107, 129, 0.2); z-index: 10; }
+
+        /* Timeline Base */
+        .timeline-line { position: absolute; left: 50%; transform: translateX(-50%); width: 4px; height: 100%; background: linear-gradient(to bottom, #FFD6E7, #FF6B81); border-radius: 4px; z-index: 1; }
+        .timeline-dot { position: absolute; left: 50%; transform: translate(-50%, -50%); width: 24px; height: 24px; background: #FF6B81; border: 4px solid #FFF8F8; border-radius: 50%; z-index: 2; box-shadow: 0 0 0 4px #FFD6E7; transition: transform 0.3s; }
+        .timeline-item:hover .timeline-dot { transform: translate(-50%, -50%) scale(1.3); }
+        
+        /* Timeline Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .timeline-item { flex-direction: row !important; justify-content: flex-start !important; }
+            .timeline-line { left: 24px; transform: none; }
+            .timeline-dot { left: 26px; }
+            .timeline-content { width: calc(100% - 64px) !important; margin-left: 64px !important; text-align: left !important; padding: 0 !important; display: block !important; }
+            .timeline-spacer { display: none !important; }
+        }
+
+        /* Birthday Cake */
+        .flame { transform-origin: center bottom; animation: flicker 0.1s infinite alternate; fill: #FFA500; }
+        @keyframes flicker { 0% { transform: scaleY(1) rotate(-2deg); opacity: 0.8;} 100% { transform: scaleY(1.2) rotate(2deg); opacity: 1;} }
+        .flame.blown-out { display: none; }
+        .smoke { opacity: 0; fill: #ccc; }
+        .blown-out ~ .smoke { animation: floatSmoke 2s ease-out forwards; }
+        @keyframes floatSmoke { 0% { opacity: 0.8; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(2); } }
+
+        /* Secret Notes */
+        .flip-card { background-color: transparent; width: 100%; height: 200px; perspective: 1000px; cursor: pointer; -webkit-tap-highlight-color: transparent;}
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+        .flip-card:hover .flip-card-inner, .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+        .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 20px; border-radius: 12px; }
+        .flip-card-front { background-color: #FFD6E7; color: #444; border: 2px dashed #FFB6C1; }
+        .flip-card-back { background-color: #FF6B81; color: white; transform: rotateY(180deg); box-shadow: 0 10px 20px rgba(255, 107, 129, 0.3); }
+
+        /* Music Vinyl */
+        .vinyl { animation: spin 4s linear infinite; transform-origin: center; animation-play-state: paused; }
+        .vinyl.playing { animation-play-state: running; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .music-note { position: absolute; opacity: 0; color: #FF6B81; font-size: 24px; animation: floatNote 2s ease-in infinite; }
+        @keyframes floatNote { 0% { opacity: 0; transform: translate(0, 0) scale(0.5); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--tx), -100px) scale(1.2) rotate(var(--rot)); } }
+
+        /* Typewriter Cursor */
+        .cursor { display: inline-block; width: 3px; background-color: #FF6B81; animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Doodles */
+        .doodle { position: absolute; z-index: 1; pointer-events: none; opacity: 0.7; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Global Floating Hearts -->
+    <div id="heart-bg"></div>
+
+    <!-- SECTION 1: OPENING GATE -->
+    <section id="gate" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-cream via-light-pink to-primary-pink">
+        <h1 class="font-elegant text-5xl md:text-7xl text-soft-red mb-12 drop-shadow-md text-center px-4 reveal active">Happy Birthday sanajan! 💖</h1>
+        
+        <div class="envelope-wrapper reveal active" id="envelope-btn" style="transition-delay: 0.2s;">
+            <div class="flap"></div>
+            <div class="envelope"></div>
+            <div class="letter shadow-lg">
+                <span class="font-handwriting text-xl md:text-2xl text-text-dark">Click to open<br>your surprise...</span>
+            </div>
+            <!-- Decorative heart on envelope -->
+            <svg class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 text-soft-red animate-pulse" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+        
+        <p class="font-body text-text-dark mt-12 text-lg animate-bounce reveal active" style="transition-delay: 0.4s;">Open the envelope</p>
+    </section>
+
+    <!-- MAIN CONTENT (Hidden initially) -->
+    <main id="main-content" class="hidden relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+        
+        <!-- SECTION 2: LOVE MESSAGE -->
+        <section class="min-h-screen flex items-center justify-center py-20 reveal">
+            <div class="paper-texture relative p-6 md:p-16 rounded-sm w-full max-w-3xl mx-auto transform rotate-1 mt-10 md:mt-0">
+                <!-- Washi Tape -->
+                <div class="tape" style="top: -15px; left: 10%; transform: rotate(-5deg);"></div>
+                <div class="tape" style="bottom: -15px; right: 10%; transform: rotate(3deg); background-color: rgba(255, 182, 193, 0.4);"></div>
+                
+                <!-- Doodles -->
+                <svg class="doodle w-12 h-12 md:w-16 md:h-16 text-pastel-rose top-4 right-4" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20,50 Q40,20 60,50 T100,50" /><path d="M50,20 Q70,50 50,80 T20,50" /></svg>
+                <svg class="doodle w-8 h-8 md:w-12 md:h-12 text-light-pink bottom-8 left-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+
+                <h2 class="font-elegant text-4xl md:text-6xl text-soft-red mb-8 text-center mt-6">Today is all about you...🌸</h2>
+                <div class="font-handwriting text-xl md:text-3xl text-text-dark leading-relaxed space-y-6" id="typewriter-container">
+                    <!-- Text injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: REASONS I LOVE YOU -->
+        <section class="min-h-screen py-20 reveal">
+            <div class="text-center mb-16 relative">
+                <h2 class="font-elegant text-4xl md:text-6xl text-soft-red inline-block relative px-4">
+                    Why You're The Best
+                    <svg class="absolute right-0 -top-4 w-8 h-8 md:w-10 md:h-10 text-primary-pink animate-spin" style="animation-duration: 10s;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                </h2>
+                <p class="font-handwriting text-xl md:text-2xl text-gray-500 mt-4">Just a few of the many reasons...</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Card 1 -->
+                <div class="reason-card paper-texture p-6 rounded-xl flex flex-col items-center justify-center text-center h-56 md:h-64 border-2 border-light-pink relative" style="--hover-rot: -3;">
+                    <div class="absolute -top-3 w-6 h-6 bg-soft-red rounded-full shadow-md border-2 border-white"></div> <!-- Pin -->
+                    <span class="text-5xl md:text-6xl mb-4">🤪</span>
+                    <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-text-dark">Your Vibe</h3>
+                    <p class="font-body text-sm md:text-base text-gray-600 mt-2">You bring positivity wherever you go and make every day brighter.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="reason-card paper-texture p-6 rounded-xl flex flex-col items-center justify-center text-center h-56 md:h-64 border-2 border-light-pink relative mt-0 lg:mt-8" style="--hover-rot: 4;">
+                    <div class="absolute -top-3 w-6 h-6 bg-primary-pink rounded-full shadow-md border-2 border-white"></div>
+                    <span class="text-5xl md:text-6xl mb-4">❤️</span>
+                    <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-text-dark">Your Kind Heart</h3>
+                    <p class="font-body text-sm md:text-base text-gray-600 mt-2">You always think about the people around you and make them feel valued and supported.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="reason-card paper-texture p-6 rounded-xl flex flex-col items-center justify-center text-center h-56 md:h-64 border-2 border-light-pink relative mt-0 lg:mt-16" style="--hover-rot: -2;">
+                    <div class="absolute -top-3 w-6 h-6 bg-pastel-rose rounded-full shadow-md border-2 border-white"></div>
+                    <span class="text-5xl md:text-6xl mb-4">🤗</span>
+                    <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-text-dark">Your Support</h3>
+                    <p class="font-body text-sm md:text-base text-gray-600 mt-2">You make every place more enjoyable just by being there.</p>
+                </div>
+                <!-- Card 4 -->
+                <div class="reason-card paper-texture p-6 rounded-xl flex flex-col items-center justify-center text-center h-56 md:h-64 border-2 border-light-pink relative mt-0 lg:mt-24" style="--hover-rot: 5;">
+                    <div class="absolute -top-3 w-6 h-6 bg-soft-red rounded-full shadow-md border-2 border-white"></div>
+                    <span class="text-5xl md:text-6xl mb-4">✨</span>
+                    <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-text-dark">Everything</h3>
+                    <p class="font-body text-sm md:text-base text-gray-600 mt-2">You're just perfectly you.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: MEMORY GALLERY -->
+        <section class="py-20 reveal relative overflow-hidden px-2">
+            <h2 class="font-elegant text-4xl md:text-6xl text-soft-red text-center mb-16 relative z-10">Memories We Captured</h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                <!-- Photo 1 -->
+                <div class="polaroid rotate-[-3deg]">
+                    <div class="tape" style="top: -10px; left: 50%; transform: translateX(-50%) rotate(-2deg);"></div>
+                    <img src="pic-1.jpeg" alt="Memory" class="rounded-sm object-cover h-64 w-full">
+                    <p class="caption">April 01,2026 💝</p>
+                </div>
+                <!-- Photo 2 -->
+                <div class="polaroid rotate-[4deg] md:mt-5">
+                    <div class="tape" style="top: -10px; left: 50%; transform: translateX(-50%) rotate(3deg); background-color: rgba(255, 182, 193, 0.4);"></div>
+                    <img src="pic-3.jpg" alt="Memory" class="rounded-sm object-cover h-64 w-full">
+                    <p class="caption">March 27,2026 💫</p>
+                </div>
+                <!-- Photo 3 -->
+                <div class="polaroid rotate-[-2deg] md:mt-10">
+                    <div class="tape" style="top: -10px; left: 50%; transform: translateX(-50%) rotate(-4deg);"></div>
+                    <img src="pic-2.jpg" alt="Memory" class="rounded-sm object-cover h-64 w-full">
+                    <p class="caption">March 30,2026 💖</p>
+                </div>
+                <!-- Photo 4 -->
+                <div class="polaroid rotate-[5deg]">
+                    <div class="tape" style="top: -10px; left: 50%; transform: translateX(-50%) rotate(2deg);"></div>
+                    <img src="pic-4.jpg" alt="Memory" class="rounded-sm object-cover h-64 w-full">
+                    <p class="caption">March 26,2026 🌸</p>
+                </div>
+                <!-- Photo 5 -->
+                <div class="polaroid rotate-[-4deg] md:-mt-5">
+                    <div class="tape" style="top: -10px; left: 50%; transform: translateX(-50%) rotate(-1deg); background-color: rgba(255, 182, 193, 0.4);"></div>
+                    <img src="pic-6.jpg" alt="Memory" class="rounded-sm object-cover h-64 w-full">
+                    <p class="caption">june 16,2026 🦆</p>
+                </div>
+                <!-- Photo 6 -->
+                <div class="polaroid rotate-[2deg] md:mt-2">
+                    <div class="tape" style="top: -10px; left: 50%; transform: translateX(-50%) rotate(4deg);"></div>
+                    <img src="pic-5.jpg" alt="Memory" class="rounded-sm object-cover h-64 w-full">
+                    <p class="caption">march 25,2026 ✨</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: LOVE TIMELINE -->
+        <section class="py-20 reveal relative">
+            <h2 class="font-elegant text-4xl md:text-6xl text-soft-red text-center mb-16">Our Journey</h2>
+            
+            <div class="relative w-full max-w-4xl mx-auto py-10 px-2">
+                <div class="timeline-line"></div>
+                
+                <!-- Item 1 -->
+                <div class="timeline-item relative mb-12 md:mb-16 flex justify-between items-center w-full reveal">
+                    <div class="timeline-content w-5/12 text-right pr-8">
+                        <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-soft-red mb-2">How We Met</h3>
+                        <p class="font-body text-sm md:text-base text-gray-600">The moment you sat next to me was the moment we first met   .</p>
+                    </div>
+                    <div class="timeline-dot" style="top: 50%;"></div>
+                    <div class="w-5/12 timeline-spacer"></div> <!-- Spacer -->
+                </div>
+
+                <!-- Item 2 -->
+                <div class="timeline-item relative mb-12 md:mb-16 flex md:flex-row-reverse justify-between items-center w-full reveal">
+                    <div class="timeline-content w-5/12 text-left pl-8">
+                        <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-soft-red mb-2">First Crazy Adventure</h3>
+                        <p class="font-body text-sm md:text-base text-gray-600">When I did magic for you guys, it brought so many laughs, endless conversations, and the start of some of our best inside jokes.</p>
+                    </div>
+                    <div class="timeline-dot" style="top: 50%;"></div>
+                    <div class="w-5/12 timeline-spacer"></div> <!-- Spacer -->
+                </div>
+
+                <!-- Item 3 -->
+                <div class="timeline-item relative mb-12 md:mb-16 flex justify-between items-center w-full reveal">
+                    <div class="timeline-content w-5/12 text-right pr-8">
+                        <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-soft-red mb-2">Through Thick & Thin</h3>
+                        <p class="font-body text-sm md:text-base text-gray-600">Realizing you're the kindest and sweetest friend.</p>
+                    </div>
+                    <div class="timeline-dot" style="top: 50%;"></div>
+                    <div class="w-5/12 timeline-spacer"></div> <!-- Spacer -->
+                </div>
+
+                <!-- Item 4 -->
+                <div class="timeline-item relative mb-12 md:mb-16 flex md:flex-row-reverse justify-between items-center w-full reveal">
+                    <div class="timeline-content w-5/12 text-left pl-8">
+                        <h3 class="font-handwriting text-2xl md:text-3xl font-bold text-soft-red mb-2">Today</h3>
+                        <p class="font-body text-sm md:text-base text-gray-600">Celebrating my favorite human. Here's to making countless more memories together!</p>
+                    </div>
+                    <div class="timeline-dot" style="top: 50%;">
+                        <!-- Heart icon inside dot for the current day -->
+                        <svg class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </div>
+                    <div class="w-5/12 timeline-spacer"></div> <!-- Spacer -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6: BIRTHDAY CAKE -->
+        <section class="py-24 md:py-32 reveal flex flex-col items-center justify-center min-h-[70vh] relative">
+            <h2 class="font-elegant text-4xl md:text-6xl text-soft-red mb-12 text-center px-4" id="cake-title">Make a Wish, sanajan!🌸</h2>
+            
+            <!-- SVG Cake -->
+            <div class="relative w-56 h-56 md:w-80 md:h-80 mb-8 transform hover:scale-105 transition-transform duration-500" id="cake-container">
+                <svg viewBox="0 0 200 200" width="100%" height="100%" class="filter drop-shadow-xl">
+                    <!-- Plate -->
+                    <ellipse cx="100" cy="180" rx="90" ry="15" fill="#e0e0e0" />
+                    <ellipse cx="100" cy="178" rx="85" ry="12" fill="#fff" />
+                    
+                    <!-- Cake Bottom Layer -->
+                    <path d="M30 170 Q100 190 170 170 L170 110 Q100 130 30 110 Z" fill="#FFC0CB" />
+                    <ellipse cx="100" cy="110" rx="70" ry="15" fill="#FFB6C1" />
+                    
+                    <!-- Cake Top Layer -->
+                    <path d="M50 110 Q100 125 150 110 L150 60 Q100 75 50 60 Z" fill="#FFD6E7" />
+                    <ellipse cx="100" cy="60" rx="50" ry="12" fill="#FFF0F5" />
+                    
+                    <!-- Frosting Drips -->
+                    <path d="M30 110 Q40 130 50 110 Q60 140 70 110 Q85 135 100 110 Q115 140 130 110 Q145 130 155 110 Q165 125 170 110" fill="#FFF0F5" stroke="#FFF0F5" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M50 60 Q60 80 70 60 Q80 85 90 60 Q105 75 120 60 Q135 80 150 60" fill="#FFB6C1" stroke="#FFB6C1" stroke-width="4" stroke-linecap="round"/>
+                    
+                    <!-- Decorative Hearts on Cake -->
+                    <path d="M60 140 A 5 5 0 0 1 70 140 A 5 5 0 0 1 80 140 Q 70 155 60 140 Z" fill="#FF6B81" transform="scale(0.5) translate(40, 100) rotate(-10)"/>
+                    <path d="M60 140 A 5 5 0 0 1 70 140 A 5 5 0 0 1 80 140 Q 70 155 60 140 Z" fill="#FF6B81" transform="scale(0.5) translate(160, 120) rotate(10)"/>
+                    <path d="M60 140 A 5 5 0 0 1 70 140 A 5 5 0 0 1 80 140 Q 70 155 60 140 Z" fill="#FF6B81" transform="scale(0.5) translate(280, 90) rotate(-5)"/>
+
+                    <!-- Candles (Grouped to blow out easily) -->
+                    <g id="candles">
+                        <!-- Candle 1 -->
+                        <rect x="75" y="30" width="8" height="35" fill="#fff" rx="2" />
+                        <line x1="75" y1="35" x2="83" y2="40" stroke="#FF6B81" stroke-width="2"/>
+                        <line x1="75" y1="45" x2="83" y2="50" stroke="#FF6B81" stroke-width="2"/>
+                        <path d="M79 15 Q75 25 79 30 Q83 25 79 15 Z" class="flame" />
+                        <path d="M79 15 Q70 0 79 -10" class="smoke" stroke-width="2" fill="none" stroke="#ccc"/>
+                        
+                        <!-- Candle 2 (Center) -->
+                        <rect x="96" y="20" width="8" height="40" fill="#fff" rx="2" />
+                        <line x1="96" y1="25" x2="104" y2="30" stroke="#FF6B81" stroke-width="2"/>
+                        <line x1="96" y1="35" x2="104" y2="40" stroke="#FF6B81" stroke-width="2"/>
+                        <path d="M100 5 Q96 15 100 20 Q104 15 100 5 Z" class="flame" />
+                        <path d="M100 5 Q90 -10 100 -20" class="smoke" stroke-width="2" fill="none" stroke="#ccc"/>
+
+                        <!-- Candle 3 -->
+                        <rect x="117" y="30" width="8" height="35" fill="#fff" rx="2" />
+                        <line x1="117" y1="35" x2="125" y2="40" stroke="#FF6B81" stroke-width="2"/>
+                        <line x1="117" y1="45" x2="125" y2="50" stroke="#FF6B81" stroke-width="2"/>
+                        <path d="M121 15 Q117 25 121 30 Q125 25 121 15 Z" class="flame" />
+                        <path d="M121 15 Q130 0 121 -10" class="smoke" stroke-width="2" fill="none" stroke="#ccc"/>
+                    </g>
+                </svg>
+            </div>
+            
+            <button id="blow-btn" class="mt-4 md:mt-8 px-6 py-3 md:px-8 md:py-4 bg-soft-red text-white font-body font-bold rounded-full shadow-lg hover:bg-pink-500 hover:shadow-xl transition-all transform hover:-translate-y-1 text-lg md:text-xl flex items-center gap-2">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Blow the Candles!
+            </button>
+        </section>
+
+        <!-- SECTION 7: SECRET LOVE NOTES -->
+        <section class="py-16 md:py-20 reveal bg-pink-50/50 rounded-3xl p-6 md:p-12 border border-pink-100 relative overflow-hidden mx-2">
+            <!-- Background doodle -->
+            <svg class="absolute top-0 right-0 w-64 h-64 text-pink-100 opacity-50 transform translate-x-1/2 -translate-y-1/2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+
+            <h2 class="font-elegant text-4xl md:text-5xl text-soft-red text-center mb-4">Secret Notes</h2>
+            <p class="font-body text-center text-gray-500 mb-8 md:mb-12">Tap to flip and read...</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Note 1 -->
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front paper-texture">
+                            <span class="font-handwriting text-2xl text-text-dark">Note #1 💌</span>
+                        </div>
+                        <div class="flip-card-back paper-texture border-2 border-soft-red">
+                            <p class="font-handwriting text-xl md:text-2xl text-text-dark leading-snug">You are the pretty pretty girl in our company 🫣</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Note 2 -->
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front paper-texture">
+                            <span class="font-handwriting text-2xl text-text-dark">Note #2 💌</span>
+                        </div>
+                        <div class="flip-card-back paper-texture border-2 border-soft-red">
+                            <p class="font-handwriting text-xl md:text-2xl text-text-dark leading-snug">The way you get angry sometimes is one of the funniest things ever—it's impossible not to smile afterward!😂🤣</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Note 3 -->
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front paper-texture">
+                            <span class="font-handwriting text-2xl text-text-dark">Note #3 💌</span>
+                        </div>
+                        <div class="flip-card-back paper-texture border-2 border-soft-red">
+                            <p class="font-handwriting text-xl md:text-2xl text-text-dark leading-snug">I feel proud inside when you share even the smallest things with me.😌</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Note 4 -->
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front paper-texture">
+                            <span class="font-handwriting text-2xl text-text-dark">Note #4 💌</span>
+                        </div>
+                        <div class="flip-card-back paper-texture border-2 border-soft-red">
+                            <p class="font-handwriting text-xl md:text-2xl text-text-dark leading-snug">One of the happiest parts of my time in Bangalore has been meeting you.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 8: MUSIC PAGE -->
+        <section class="py-24 reveal flex flex-col md:flex-row items-center justify-center gap-10 md:gap-16 relative px-4">
+            <div id="music-notes-container" class="absolute inset-0 pointer-events-none z-0"></div>
+            
+            <div class="w-48 h-48 md:w-64 md:h-64 relative z-10 cursor-pointer" id="vinyl-record">
+                <!-- SVG Vinyl -->
+                <svg viewBox="0 0 200 200" class="vinyl w-full h-full drop-shadow-2xl filter" id="record-svg">
+                    <circle cx="100" cy="100" r="95" fill="#1a1a1a" />
+                    <!-- Grooves -->
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="#2a2a2a" stroke-width="1" />
+                    <circle cx="100" cy="100" r="75" fill="none" stroke="#2a2a2a" stroke-width="1" />
+                    <circle cx="100" cy="100" r="65" fill="none" stroke="#2a2a2a" stroke-width="1" />
+                    <circle cx="100" cy="100" r="55" fill="none" stroke="#2a2a2a" stroke-width="1" />
+                    <!-- Label -->
+                    <circle cx="100" cy="100" r="35" fill="#FFB6C1" />
+                    <circle cx="100" cy="100" r="30" fill="none" stroke="#FF6B81" stroke-width="1" stroke-dasharray="2 2" />
+                    <!-- Hole -->
+                    <circle cx="100" cy="100" r="5" fill="#FFF8F8" />
+                    <!-- Heart on label -->
+                    <path d="M100 105 A 5 5 0 0 1 105 105 A 5 5 0 0 1 110 105 Q 105 115 100 105 Z" fill="#FF6B81" transform="translate(-100, -95) scale(2) translate(48, 45)"/>
+                    
+                    <!-- Light reflection -->
+                    <path d="M 100 5 A 95 95 0 0 1 195 100 A 95 95 0 0 0 100 15 A 95 95 0 0 0 5 100 A 95 95 0 0 1 100 5 Z" fill="rgba(255,255,255,0.1)"/>
+                </svg>
+                <div class="absolute -top-4 -right-4 bg-white p-2 rounded-full shadow-lg z-20 animate-bounce text-soft-red">
+                    <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+
+            <div class="text-center md:text-left z-10 mt-4 md:mt-0">
+                <h2 class="font-elegant text-4xl md:text-5xl text-soft-red mb-4">singer</h2>
+                <p class="font-body text-lg md:text-xl text-text-dark mb-6">"Every time I hear that song, it reminds me of the Snap where you sang it"</p>
+                
+                <!-- Real Spotify Embed -->
+                <div class="mt-4 transform rotate-2 hover:rotate-0 transition-transform shadow-md rounded-xl max-w-[300px] mx-auto md:mx-0">
+                    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/7wrYBASu0OoxoDErd4Edxd?utm_source=generator" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- SECTION 9: COUNTDOWN -->
+        <section class="py-20 reveal">
+            <div class="text-center mb-12 px-4">
+                <h2 class="font-elegant text-4xl md:text-6xl text-soft-red">Every Second Counts</h2>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-6 md:gap-12" id="counter-section">
+                <!-- Days -->
+                <div class="text-center w-28 md:w-32">
+                    <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full shadow-soft-pink border-4 border-light-pink flex items-center justify-center mb-4 mx-auto">
+                        <span class="font-body text-3xl md:text-4xl font-bold text-soft-red counter" data-target="4080">0</span>
+                    </div>
+                    <span class="font-handwriting text-xl md:text-2xl text-text-dark">hours</span>
+                </div>
+                <!-- Months -->
+                <div class="text-center w-28 md:w-32 mt-4 md:mt-0">
+                    <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full shadow-soft-pink border-4 border-primary-pink flex items-center justify-center mb-4 mx-auto">
+                        <span class="font-body text-3xl md:text-4xl font-bold text-soft-red counter" data-target="170">0</span>
+                    </div>
+                    <span class="font-handwriting text-xl md:text-2xl text-text-dark">days</span>
+                </div>
+                <!-- Years -->
+                <div class="text-center w-28 md:w-32 mt-4 md:mt-0">
+                    <div class="w-24 h-24 md:w-32 md:h-32 bg-white rounded-full shadow-soft-pink border-4 border-pastel-rose flex items-center justify-center mb-4 mx-auto">
+                        <span class="font-body text-3xl md:text-4xl font-bold text-soft-red counter" data-target="3">0</span>
+                    </div>
+                    <span class="font-handwriting text-xl md:text-2xl text-text-dark">months</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 10: FINAL LOVE LETTER -->
+        <section class="min-h-screen flex items-center justify-center py-20 reveal relative px-4">
+            <div class="absolute inset-0 bg-gradient-to-t from-pink-100/50 to-transparent z-0 rounded-3xl pointer-events-none"></div>
+            
+            <div class="text-center max-w-4xl px-2 z-10 relative">
+                <h2 class="font-elegant text-5xl md:text-7xl text-soft-red mb-8 md:mb-12">My best wishs To You</h2>
+                
+                <div class="space-y-4 md:space-y-6 font-handwriting text-xl md:text-4xl text-text-dark leading-relaxed" id="final-letter">
+                    <p class="letter-line opacity-0 transform translate-y-4 transition-all duration-1000 delay-100">Happy Happiest Birthday, Sanjana! 🌸 </p>
+                    <p class="letter-line opacity-0 transform translate-y-4 transition-all duration-1000 delay-300">You're my best buffalo! 🐃 </p>
+                    <p class="letter-line opacity-0 transform translate-y-4 transition-all duration-1000 delay-500">Always stay happy and keep that beautiful smile on your face. Be brave, stay strong, and keep believing in yourself—I know you can overcome anything that comes your way.</p>
+                    <p class="letter-line opacity-0 transform translate-y-4 transition-all duration-1000 delay-700">I will always be there for you, no matter what. Whatever happens, you can always count on me You are an incredible friend,a true blessing, and someone I will always cherish. 💕</p>
+                    <p class="letter-line opacity-0 transform translate-y-4 transition-all duration-1000 delay-1000 font-bold text-soft-red text-3xl md:text-5xl mt-8 md:mt-12">You're truly the best! ✨</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 11: FINAL SCREEN -->
+        <section class="min-h-[60vh] flex flex-col items-center justify-center reveal relative pb-20 px-4">
+            <h1 class="font-body font-bold text-5xl sm:text-6xl md:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-soft-red via-primary-pink to-soft-red animate-pulse text-center leading-tight tracking-tight drop-shadow-sm">
+                HAPPY<br>BIRTHDAY
+            </h1>
+            <p class="font-elegant text-3xl md:text-4xl text-gray-500 mt-4 mb-12 md:mb-16 text-center">Best Friends Forever</p>
+            
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="px-6 py-3 md:px-8 md:py-3 bg-white text-soft-red border-2 border-soft-red font-body font-bold rounded-full hover:bg-soft-red hover:text-white transition-colors duration-300 flex items-center gap-2 group text-sm md:text-base">
+                <svg class="w-4 h-4 md:w-5 md:h-5 group-hover:-rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Replay Surprise
+            </button>
+        </section>
+        
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            /* --- 1. Global Background Floating Hearts --- */
+            const bgContainer = document.getElementById('heart-bg');
+            const heartSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+            const colors = ['#FFB6C1', '#FFD6E7', '#FFC0CB', '#FF6B81', '#ffffff'];
+
+            function createHeart() {
+                const heart = document.createElement('div');
+                heart.classList.add('bg-heart');
+                heart.innerHTML = heartSvg;
+                
+                // Random properties
+                const size = Math.random() * 20 + 10; // 10px to 30px
+                const left = Math.random() * 100; // 0% to 100vw
+                const duration = Math.random() * 10 + 5; // 5s to 15s
+                const rot = (Math.random() - 0.5) * 180; // random rotation
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                heart.style.width = `${size}px`;
+                heart.style.height = `${size}px`;
+                heart.style.color = color;
+                heart.style.setProperty('--left', `${left}vw`);
+                heart.style.setProperty('--duration', `${duration}s`);
+                heart.style.setProperty('--scale', Math.random() * 0.5 + 0.5);
+                heart.style.setProperty('--rot', `${rot}deg`);
+
+                bgContainer.appendChild(heart);
+
+                // Remove after animation
+                setTimeout(() => {
+                    heart.remove();
+                }, duration * 1000);
+            }
+
+            // Create hearts periodically
+            setInterval(createHeart, 400);
+            // Initial burst
+            for(let i=0; i<15; i++) setTimeout(createHeart, Math.random()*2000);
+
+
+            /* --- 2. Envelope & Gate Logic --- */
+            const envelopeBtn = document.getElementById('envelope-btn');
+            const gate = document.getElementById('gate');
+            const mainContent = document.getElementById('main-content');
+            let isOpen = false;
+
+            envelopeBtn.addEventListener('click', () => {
+                if(isOpen) return;
+                isOpen = true;
+                
+                // Animate envelope open
+                envelopeBtn.classList.add('open');
+                
+                // Trigger Confetti
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#FFB6C1', '#FFD6E7', '#FF6B81', '#ffffff']
+                });
+
+                // Transition out gate, transition in main content
+                setTimeout(() => {
+                    gate.classList.add('hidden-gate');
+                    
+                    setTimeout(() => {
+                        gate.style.display = 'none';
+                        mainContent.classList.remove('hidden');
+                        
+                        // Small delay to allow display:block to apply before changing opacity
+                        requestAnimationFrame(() => {
+                            mainContent.classList.remove('opacity-0');
+                            document.body.style.overflowY = 'auto'; // Re-enable scrolling
+                            
+                            // Initialize observers after content is visible
+                            initObservers();
+                        });
+                        
+                    }, 1000); // Wait for gate fade out
+                    
+                }, 800); // Wait for envelope animation
+            });
+
+
+            /* --- 3. Scroll Reveal Logic (Intersection Observer) --- */
+            function initObservers() {
+                const revealElements = document.querySelectorAll('.reveal');
+                
+                const revealObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('active');
+                            
+                            // Trigger specific logic based on section
+                            
+                            // Typewriter trigger
+                            if(entry.target.querySelector('#typewriter-container') && !entry.target.dataset.typed) {
+                                entry.target.dataset.typed = 'true';
+                                startTypewriter();
+                            }
+                            
+                            // Counter trigger
+                            if(entry.target.querySelector('#counter-section') && !entry.target.dataset.counted) {
+                                entry.target.dataset.counted = 'true';
+                                startCounters();
+                            }
+
+                            // Final letter trigger
+                            if(entry.target.querySelector('#final-letter')) {
+                                const lines = entry.target.querySelectorAll('.letter-line');
+                                lines.forEach(line => {
+                                    line.classList.remove('opacity-0', 'translate-y-4');
+                                });
+                            }
+                            
+                            // Optional: Stop observing once revealed
+                            // observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
+
+                revealElements.forEach(el => revealObserver.observe(el));
+            }
+
+
+            /* --- 4. Typewriter Effect --- */
+            const typewriterText = `I wanted to create something special for you.<br><br>From day one, Your kindness, support, and understanding make you the kind of friend everyone wishes they had.<br><br> You have a way of making people feel valued, comfortable, and appreciated, and that's something truly special.<br><br>Your honesty, empathy, and beautiful heart make you an incredible human being. You inspire everyone around you with your positivity, strength, and genuine nature.<br><br>someone who made this city feel more welcoming and memorable., I want to celebrate the best friend anyone could ask for.`;
+            const twContainer = document.getElementById('typewriter-container');
+            let twIndex = 0;
+            let isTag = false;
+
+            function startTypewriter() {
+                twContainer.innerHTML = '<span id="tw-text"></span><span class="cursor">|</span>';
+                const textSpan = document.getElementById('tw-text');
+                
+                function type() {
+                    if (twIndex < typewriterText.length) {
+                        const char = typewriterText.charAt(twIndex);
+                        
+                        if (char === '<') isTag = true;
+                        
+                        textSpan.innerHTML = typewriterText.substring(0, twIndex + 1);
+                        twIndex++;
+                        
+                        if (char === '>') isTag = false;
+                        
+                        let delay = isTag ? 0 : (Math.random() * 30 + 20); // Faster for tags, random for chars
+                        if(!isTag && char === '.') delay = 300; // Pause at sentences
+                        
+                        setTimeout(type, delay);
+                    } else {
+                        // Remove cursor at end
+                        document.querySelector('.cursor').style.display = 'none';
+                    }
+                }
+                type();
+            }
+
+
+            /* --- 5. Birthday Cake Logic --- */
+            const blowBtn = document.getElementById('blow-btn');
+            const flames = document.querySelectorAll('.flame');
+            const cakeTitle = document.getElementById('cake-title');
+            let isBlown = false;
+
+            blowBtn.addEventListener('click', () => {
+                if(isBlown) return;
+                isBlown = true;
+                
+                // Hide flames, show smoke (handled by CSS adjacent sibling selector)
+                flames.forEach(flame => flame.classList.add('blown-out'));
+                
+                // Change Button and Text
+                blowBtn.innerHTML = `<span>Yay! Happy Birthday! 🎉</span>`;
+                blowBtn.classList.remove('bg-soft-red', 'hover:bg-pink-500');
+                blowBtn.classList.add('bg-green-500', 'hover:bg-green-600', 'scale-110');
+                cakeTitle.innerText = "Yay! Happy Birthday! 🥳";
+                cakeTitle.classList.add('animate-bounce');
+
+                // Massive Confetti Explosion
+                const duration = 3000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: colors
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: colors
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            });
+
+
+            /* --- 6. Music Vinyl Logic --- */
+            const vinyl = document.getElementById('record-svg');
+            const vinylContainer = document.getElementById('vinyl-record');
+            const musicNotesContainer = document.getElementById('music-notes-container');
+            let isPlaying = false;
+            let noteInterval;
+
+            vinylContainer.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                
+                if(isPlaying) {
+                    vinyl.classList.add('playing');
+                    
+                    // Create floating music notes
+                    noteInterval = setInterval(() => {
+                        const note = document.createElement('div');
+                        note.classList.add('music-note');
+                        note.innerHTML = ['♪', '♫', '♬'][Math.floor(Math.random() * 3)];
+                        
+                        // Positioning relative to container center
+                        note.style.left = '50%';
+                        note.style.top = '50%';
+                        
+                        // Animation vars
+                        const tx = (Math.random() - 0.5) * 100; // X movement
+                        const rot = (Math.random() - 0.5) * 45; // Rotation
+                        note.style.setProperty('--tx', `${tx}px`);
+                        note.style.setProperty('--rot', `${rot}deg`);
+                        
+                        musicNotesContainer.appendChild(note);
+                        
+                        setTimeout(() => note.remove(), 2000);
+                    }, 400);
+
+                } else {
+                    vinyl.classList.remove('playing');
+                    clearInterval(noteInterval);
+                }
+            });
+
+
+            /* --- 7. Counters Logic --- */
+            function startCounters() {
+                const counters = document.querySelectorAll('.counter');
+                const duration = 2000; // 2 seconds
+
+                counters.forEach(counter => {
+                    const target = +counter.getAttribute('data-target');
+                    const start = 0;
+                    const increment = target / (duration / 16); // 60fps
+                    let current = start;
+
+                    const updateCounter = () => {
+                        current += increment;
+                        if (current < target) {
+                            counter.innerText = Math.ceil(current);
+                            requestAnimationFrame(updateCounter);
+                        } else {
+                            counter.innerText = target;
+                        }
+                    };
+                    updateCounter();
+                });
+            }
+
+        });
+    </script>
+</body>
+</html>
